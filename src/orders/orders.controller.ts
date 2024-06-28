@@ -24,6 +24,7 @@ export class OrdersController {
   @Post()
   async create(@Body() createOrderDto: CreateOrderDto) {
     try {
+      console.log('createORder GATE ', createOrderDto);
       const orderObservable = this.orderClient.send(
         'createOrder',
         createOrderDto,
