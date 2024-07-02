@@ -9,7 +9,7 @@ import {
   Patch,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ORDER_SERVICE } from 'src/config';
+import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { CreateOrderDto, OrderPaginationDto, StatusDto } from './dto';
@@ -17,18 +17,12 @@ import { PaginationDto } from 'src/common';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    @Inject(ORDER_SERVICE) private readonly orderClient: ClientProxy,
-  ) {}
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
 
   @Post()
   async create(@Body() createOrderDto: CreateOrderDto) {
     try {
-      console.log('createORder GATE ', createOrderDto);
-      const orderObservable = this.orderClient.send(
-        'createOrder',
-        createOrderDto,
-      );
+      const orderObservable = this.client.send('createOrder', createOrderDto);
       const order = await firstValueFrom(orderObservable);
       return order;
     } catch (error) {
@@ -39,7 +33,7 @@ export class OrdersController {
   @Get()
   async findAll(@Query() orderPaginationDto: OrderPaginationDto) {
     try {
-      const orderObservable = this.orderClient.send(
+      const orderObservable = this.client.send(
         'findAllOrders',
         orderPaginationDto,
       );
@@ -53,7 +47,7 @@ export class OrdersController {
   @Get('id/:id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     try {
-      const orderObservable = this.orderClient.send('findOneOrder', {
+      const orderObservable = this.client.send('findOneOrder', {
         id: id,
       });
       const order = await firstValueFrom(orderObservable);
@@ -69,7 +63,7 @@ export class OrdersController {
     @Query() paginationDto: PaginationDto,
   ) {
     try {
-      const orderObservable = this.orderClient.send('findAllOrders', {
+      const orderObservable = this.client.send('findAllOrders', {
         ...paginationDto,
         status: statusDto.status,
       });
@@ -86,7 +80,7 @@ export class OrdersController {
     @Body() statusDto: StatusDto,
   ) {
     try {
-      const orderObservable = this.orderClient.send('changeOrderStatus', {
+      const orderObservable = this.client.send('changeOrderStatus', {
         id,
         status: statusDto.status,
       });

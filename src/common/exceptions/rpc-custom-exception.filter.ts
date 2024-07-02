@@ -4,7 +4,7 @@ import { RpcException } from '@nestjs/microservices';
 @Catch(RpcException)
 export class RpcCustomExceptionFilter implements ExceptionFilter {
   catch(exception: RpcException, host: ArgumentsHost) {
-    console.log('paso por aqui en nuestro custom');
+    console.log('paso por aqui en nuestro custom RpcException');
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const rpcError = exception.getError();

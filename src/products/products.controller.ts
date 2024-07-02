@@ -13,18 +13,16 @@ import {
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, firstValueFrom } from 'rxjs';
 import { CreateProductDto, PaginationDto, UpdateProductDto } from 'src/common';
-import { PRODUCT_SERVICE } from 'src/config';
+import { NATS_SERVICE } from 'src/config';
 
 @Controller('products')
 export class ProductsController {
-  constructor(
-    @Inject(PRODUCT_SERVICE) private readonly productsClient: ClientProxy,
-  ) {}
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
 
   @Post()
   async createProduct(@Body() createProductDto: CreateProductDto) {
     try {
-      const productObservable = this.productsClient.send(
+      const productObservable = this.client.send(
         { cmd: 'create_product' },
         createProductDto,
       );
@@ -37,7 +35,7 @@ export class ProductsController {
 
   @Get()
   async findAllProducts(@Query() paginationDto: PaginationDto) {
-    const products = this.productsClient.send(
+    const products = this.client.send(
       { cmd: 'find_all_product' },
       paginationDto,
     );
@@ -56,13 +54,11 @@ export class ProductsController {
     // } catch (error) {
     //   throw new RpcException(error);
     // }
-    return this.productsClient
-      .send({ cmd: 'find_one_product' }, { id: id })
-      .pipe(
-        catchError((err) => {
-          throw new RpcException(err);
-        }),
-      );
+    return this.client.send({ cmd: 'find_one_product' }, { id: id }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
 
   @Patch(':id')
@@ -71,7 +67,7 @@ export class ProductsController {
     @Body() body: UpdateProductDto,
   ) {
     try {
-      const productObservable = this.productsClient.send(
+      const productObservable = this.client.send(
         { cmd: 'update_product' },
         { id: id, ...body },
       );
@@ -86,7 +82,7 @@ export class ProductsController {
   @Delete(':id')
   async removeProduct(@Param('id', ParseIntPipe) id: number) {
     try {
-      const productObservable = this.productsClient.send(
+      const productObservable = this.client.send(
         { cmd: 'remove_product' },
         { id: id },
       );
